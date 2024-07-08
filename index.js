@@ -15,8 +15,7 @@ app.use(express.json());
 // MongoDB Connection URL
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri, {
-  // useNewUrlParser: true,
-  // useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 30000,
 });
 
 async function run() {
@@ -134,6 +133,29 @@ async function run() {
         res
           .status(500)
           .send({ success: false, message: "Internal server error" });
+      }
+    });
+    //get courses according to id
+    app.get("/api/v1/courses/:courseId", async (req, res) => {
+      const courseId = req.params.courseId;
+
+      // Validate bookId as a valid ObjectId
+      if (!ObjectId.isValid(courseId)) {
+        return res.status(400).send({ error: "Invalid bookId" });
+      }
+
+      try {
+        const query = { _id: new ObjectId(courseId) };
+        const book = await coursesCollection.findOne(query);
+
+        if (!book) {
+          return res.status(404).send({ error: "Book not found" });
+        }
+
+        res.status(200).send(book);
+      } catch (error) {
+        console.error("Error fetching book:", error);
+        res.status(500).send({ error: "Internal server error" });
       }
     });
     //get instructors api
