@@ -31,6 +31,7 @@ async function run() {
     const coursesCollection = db.collection("courses");
     const instructorCollection = db.collection("instructor");
     const booksCollection = db.collection("books");
+    const reviewsCollection = db.collection("reviews");
 
     // User Registration
     app.post("/api/v1/register", async (req, res) => {
@@ -111,6 +112,15 @@ async function run() {
         res.send({ success: false, message: "Something went wrong" });
       }
     });
+    app.post("/api/v1/reviews", async (req, res) => {
+      const reviews = req.body;
+      const result = await reviewsCollection.insertOne(reviews);
+      if (result.insertedId) {
+        res.send({ result, success: true });
+      } else {
+        res.send({ success: false, message: "Something went wrong" });
+      }
+    });
 
     //instructors post api
     app.post("/api/v1/instructors", async (req, res) => {
@@ -123,6 +133,18 @@ async function run() {
       }
     });
 
+    //get reviews api
+    app.get("/api/v1/reviews", async (req, res) => {
+      try {
+        const result = await reviewsCollection.find({}).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        res
+          .status(500)
+          .send({ success: false, message: "Internal server error" });
+      }
+    });
     //get courses api
     app.get("/api/v1/courses", async (req, res) => {
       try {
